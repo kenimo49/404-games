@@ -113,11 +113,8 @@
       invulnT = 2;
     }
 
-    function update(dt) {
-      coolT -= dt;
-      if (invulnT > 0) invulnT -= dt;
-
-      // steering: keyboard, or pointer-drag aiming
+    // steering: keyboard, or pointer-drag aiming
+    function steer(dt) {
       if (keyL) ship.a -= 3.8 * dt;
       if (keyR) ship.a += 3.8 * dt;
       var thrust = keyUp;
@@ -138,7 +135,9 @@
       if (vlen > vmax) { ship.vx *= vmax / vlen; ship.vy *= vmax / vlen; }
       ship.x = wrap(ship.x + ship.vx * dt, W);
       ship.y = wrap(ship.y + ship.vy * dt, H);
+    }
 
+    function updateBullets(dt) {
       for (var i = bullets.length - 1; i >= 0; i--) {
         var b = bullets[i];
         b.t -= dt;
@@ -146,56 +145,74 @@
         b.x = wrap(b.x + b.vx * dt, W);
         b.y = wrap(b.y + b.vy * dt, H);
       }
+    }
 
-      for (i = rocks.length - 1; i >= 0; i--) {
+    // first bullet inside the rock is consumed; true = hit
+    function hitByBullet(rk) {
+      var rr = SIZES[rk.tier];
+      for (var j = bullets.length - 1; j >= 0; j--) {
+        var dx = bullets[j].x - rk.x, dy = bullets[j].y - rk.y;
+        if (dx * dx + dy * dy < rr * rr) {
+          bullets.splice(j, 1);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function splitRock(rk) {
+      score += rk.tier === 3 ? 20 : rk.tier === 2 ? 50 : 100;
+      if (rk.tier <= 1) return;
+      for (var k = 0; k < 2; k++) {
+        var a = Math.random() * Math.PI * 2;
+        var sp = 55 + Math.random() * 65;
+        rocks.push({
+          x: rk.x, y: rk.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          tier: rk.tier - 1, ch: Math.random() < 0.5 ? '4' : '0',
+          rot: (Math.random() - 0.5) * 3, ang: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    // false = the ship was destroyed mid-loop (game over)
+    function updateRocks(dt) {
+      for (var i = rocks.length - 1; i >= 0; i--) {
         var rk = rocks[i];
         rk.x = wrap(rk.x + rk.vx * dt, W);
         rk.y = wrap(rk.y + rk.vy * dt, H);
         rk.ang += rk.rot * dt;
-        var rr = SIZES[rk.tier];
 
-        // bullet hit
-        var popped = false;
-        for (var j = bullets.length - 1; j >= 0; j--) {
-          var dx = bullets[j].x - rk.x, dy = bullets[j].y - rk.y;
-          if (dx * dx + dy * dy < rr * rr) {
-            bullets.splice(j, 1);
-            score += rk.tier === 3 ? 20 : rk.tier === 2 ? 50 : 100;
-            if (rk.tier > 1) {
-              for (var k = 0; k < 2; k++) {
-                var a = Math.random() * Math.PI * 2;
-                var sp = 55 + Math.random() * 65;
-                rocks.push({
-                  x: rk.x, y: rk.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-                  tier: rk.tier - 1, ch: Math.random() < 0.5 ? '4' : '0',
-                  rot: (Math.random() - 0.5) * 3, ang: Math.random() * Math.PI * 2
-                });
-              }
-            }
-            rocks.splice(i, 1);
-            popped = true;
-            break;
-          }
+        if (hitByBullet(rk)) {
+          splitRock(rk);
+          rocks.splice(i, 1);
+          continue;
         }
-        if (popped) continue;
-
-        // ship hit
         if (invulnT <= 0) {
           var sx = ship.x - rk.x, sy = ship.y - rk.y;
-          var range = rr * 0.8 + 8;
+          var range = SIZES[rk.tier] * 0.8 + 8;
           if (sx * sx + sy * sy < range * range) {
             hitShip();
-            if (st !== 'run') return;
+            if (st !== 'run') return false;
           }
         }
       }
+      return true;
+    }
 
-      if (!rocks.length) {
-        waveN++;
-        score += 100;
-        rocks = spawnRocks(4 + Math.min(3, waveN));
-        invulnT = Math.max(invulnT, 1.2);
-      }
+    function nextWave() {
+      waveN++;
+      score += 100;
+      rocks = spawnRocks(4 + Math.min(3, waveN));
+      invulnT = Math.max(invulnT, 1.2);
+    }
+
+    function update(dt) {
+      coolT -= dt;
+      if (invulnT > 0) invulnT -= dt;
+      steer(dt);
+      updateBullets(dt);
+      if (!updateRocks(dt)) return;
+      if (!rocks.length) nextWave();
     }
 
     function draw() {

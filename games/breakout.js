@@ -120,20 +120,19 @@
       if (score > hi) { hi = score; saveHi(hi); }
     }
 
-    function update(dt) {
+    function movePaddle(dt) {
       if (keyL) px -= 380 * dt;
       if (keyR) px += 380 * dt;
       px = Math.max(PADDLE_W / 2, Math.min(W - PADDLE_W / 2, px));
-      if (glued) { bx = px; by = PADDLE_Y - BALL_R - 1; return; }
+    }
 
-      bx += bvx * dt;
-      by += bvy * dt;
-
+    function bounceWalls() {
       if (bx < BALL_R) { bx = BALL_R; bvx = Math.abs(bvx); }
       if (bx > W - BALL_R) { bx = W - BALL_R; bvx = -Math.abs(bvx); }
       if (by < BALL_R) { by = BALL_R; bvy = Math.abs(bvy); }
+    }
 
-      // paddle
+    function bouncePaddle() {
       if (bvy > 0 && by + BALL_R > PADDLE_Y && by + BALL_R < PADDLE_Y + PADDLE_H + 8 &&
           Math.abs(bx - px) < PADDLE_W / 2 + BALL_R) {
         var off = (bx - px) / (PADDLE_W / 2); // -1..1
@@ -142,8 +141,9 @@
         bvy = -Math.sqrt(Math.max(sp * sp - bvx * bvx, sp * sp * 0.16));
         by = PADDLE_Y - BALL_R;
       }
+    }
 
-      // bricks
+    function hitBricks() {
       for (var i = 0; i < bricks.length; i++) {
         var b = bricks[i];
         if (!b.alive) continue;
@@ -155,12 +155,27 @@
           var overY = Math.min(by + BALL_R - b.y, b.y + b.h - (by - BALL_R));
           if (overX < overY) bvx = bx < b.x + b.w / 2 ? -Math.abs(bvx) : Math.abs(bvx);
           else bvy = by < b.y + b.h / 2 ? -Math.abs(bvy) : Math.abs(bvy);
-          break;
+          return;
         }
       }
-      var anyAlive = false;
-      for (i = 0; i < bricks.length; i++) if (bricks[i].alive) { anyAlive = true; break; }
-      if (!anyAlive) {
+    }
+
+    function anyBricksAlive() {
+      for (var i = 0; i < bricks.length; i++) if (bricks[i].alive) return true;
+      return false;
+    }
+
+    function update(dt) {
+      movePaddle(dt);
+      if (glued) { bx = px; by = PADDLE_Y - BALL_R - 1; return; }
+
+      bx += bvx * dt;
+      by += bvy * dt;
+      bounceWalls();
+      bouncePaddle();
+      hitBricks();
+
+      if (!anyBricksAlive()) {
         level++;
         score += 50;
         bricks = buildBricks();

@@ -105,6 +105,15 @@ instance.destroy();
 
 ビルドはありません。`games/` 配下のファイルを編集して `demo/index.html` をブラウザで開くだけ（`file://` でも動きます）。demoページにはテーマ確認用のライト/ダークトグルがあります。
 
+### テスト
+
+`test/smoke.mjs` がheadless Chromeで全ゲーム+アーケードをマウントし、起動・操作・ページエラー0件を検証します。必要なのはpuppeteerだけです（同梱していません）:
+
+```bash
+npm install --no-save --no-package-lock puppeteer
+node test/smoke.mjs
+```
+
 ## ライセンス
 
 [MIT](LICENSE) © ken imoto

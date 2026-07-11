@@ -113,15 +113,8 @@
       return n;
     }
 
-    function update(dt) {
-      anim += dt;
-      coolT -= dt;
-      if (keyL) shipX -= 300 * dt;
-      if (keyR) shipX += 300 * dt;
-      shipX = Math.max(SHIP_W / 2, Math.min(W - SHIP_W / 2, shipX));
-
-      // formation march
-      var alive = aliveCount(), total = invaders.length;
+    // formation march; true = invaders reached the ship line
+    function march(dt, alive, total) {
       var speed = (16 + wave * 6) * (1 + 2.6 * (1 - alive / total));
       offX += dirX * speed * dt;
       var minX = 1e9, maxX = -1e9, maxY = -1e9;
@@ -134,10 +127,11 @@
       }
       if (maxX > W - 16 && dirX > 0) { dirX = -1; offY += 10; }
       else if (minX < 16 && dirX < 0) { dirX = 1; offY += 10; }
-      if (maxY > SHIP_Y - 18) return gameOver();
+      return maxY > SHIP_Y - 18;
+    }
 
-      // player shots
-      for (i = shots.length - 1; i >= 0; i--) {
+    function updateShots(dt) {
+      for (var i = shots.length - 1; i >= 0; i--) {
         shots[i].y -= 380 * dt;
         if (shots[i].y < -10) { shots.splice(i, 1); continue; }
         for (var j = 0; j < invaders.length; j++) {
@@ -151,40 +145,60 @@
           }
         }
       }
+    }
 
-      // invader bombs: a random bottom-most invader drops one
-      bombT -= dt;
-      if (bombT <= 0) {
-        var shooters = {};
-        for (i = 0; i < invaders.length; i++) {
-          var u = invaders[i];
-          if (!u.alive) continue;
-          if (!(u.col in shooters) || invaders[shooters[u.col]].oy < u.oy) shooters[u.col] = i;
-        }
-        var keys = Object.keys(shooters);
-        if (keys.length) {
-          var pick = invaders[shooters[keys[Math.floor(Math.random() * keys.length)]]];
-          bombs.push({ x: pick.ox + offX, y: pick.oy + offY + 8 });
-        }
-        bombT = Math.max(0.5, 1.5 - wave * 0.15 - (1 - alive / total) * 0.5) * (0.6 + Math.random() * 0.8);
+    // a random bottom-most invader drops one bomb
+    function dropBomb(alive, total) {
+      var shooters = {};
+      for (var i = 0; i < invaders.length; i++) {
+        var u = invaders[i];
+        if (!u.alive) continue;
+        if (!(u.col in shooters) || invaders[shooters[u.col]].oy < u.oy) shooters[u.col] = i;
       }
-      for (i = bombs.length - 1; i >= 0; i--) {
+      var keys = Object.keys(shooters);
+      if (keys.length) {
+        var pick = invaders[shooters[keys[Math.floor(Math.random() * keys.length)]]];
+        bombs.push({ x: pick.ox + offX, y: pick.oy + offY + 8 });
+      }
+      bombT = Math.max(0.5, 1.5 - wave * 0.15 - (1 - alive / total) * 0.5) * (0.6 + Math.random() * 0.8);
+    }
+
+    // true = the ship ran out of lives
+    function updateBombs(dt, alive, total) {
+      bombT -= dt;
+      if (bombT <= 0) dropBomb(alive, total);
+      for (var i = bombs.length - 1; i >= 0; i--) {
         bombs[i].y += (150 + wave * 18) * dt;
         if (bombs[i].y > H + 10) { bombs.splice(i, 1); continue; }
         if (Math.abs(bombs[i].x - shipX) < SHIP_W / 2 && bombs[i].y > SHIP_Y - SHIP_H && bombs[i].y < SHIP_Y + 6) {
           bombs.splice(i, 1);
           lives--;
-          if (lives <= 0) return gameOver();
+          if (lives <= 0) return true;
         }
       }
+      return false;
+    }
 
-      if (alive === 0) {
-        wave++;
-        score += 100;
-        invaders = buildWave();
-        offX = 0; offY = 0; dirX = 1;
-        bombs = [];
-      }
+    function nextWave() {
+      wave++;
+      score += 100;
+      invaders = buildWave();
+      offX = 0; offY = 0; dirX = 1;
+      bombs = [];
+    }
+
+    function update(dt) {
+      anim += dt;
+      coolT -= dt;
+      if (keyL) shipX -= 300 * dt;
+      if (keyR) shipX += 300 * dt;
+      shipX = Math.max(SHIP_W / 2, Math.min(W - SHIP_W / 2, shipX));
+
+      var alive = aliveCount(), total = invaders.length;
+      if (march(dt, alive, total)) return gameOver();
+      updateShots(dt);
+      if (updateBombs(dt, alive, total)) return gameOver();
+      if (alive === 0) nextWave();
     }
 
     function drawInvader(x, y, frame) {

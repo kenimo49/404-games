@@ -168,26 +168,35 @@
         score += 10;
       }
     }
-    function decideGhost(a, prev) {
+    function openDirs(a, prev) {
       var options = [];
       for (var d in DIRS) {
         if (prev && d === OPP[prev]) continue;
         if (open(a.c, a.r, d)) options.push(d);
       }
-      if (!options.length) { a.dir = prev ? OPP[prev] : null; return; }
-      if (Math.random() < 0.62) {
-        var best = options[0], bestD = 1e9;
-        for (var i = 0; i < options.length; i++) {
-          var nc = a.c + DIRS[options[i]][0], nr = a.r + DIRS[options[i]][1];
-          var dx = nc - (player.c + (player.dir ? DIRS[player.dir][0] * player.prog : 0));
-          var dy = nr - (player.r + (player.dir ? DIRS[player.dir][1] * player.prog : 0));
-          var dist = dx * dx + dy * dy;
-          if (dist < bestD) { bestD = dist; best = options[i]; }
-        }
-        a.dir = best;
-      } else {
-        a.dir = options[Math.floor(Math.random() * options.length)];
+      return options;
+    }
+
+    // greedy: the option that closes the distance to the player
+    function chaseDir(a, options) {
+      var pc = player.c + (player.dir ? DIRS[player.dir][0] * player.prog : 0);
+      var pr = player.r + (player.dir ? DIRS[player.dir][1] * player.prog : 0);
+      var best = options[0], bestD = 1e9;
+      for (var i = 0; i < options.length; i++) {
+        var dx = a.c + DIRS[options[i]][0] - pc;
+        var dy = a.r + DIRS[options[i]][1] - pr;
+        var dist = dx * dx + dy * dy;
+        if (dist < bestD) { bestD = dist; best = options[i]; }
       }
+      return best;
+    }
+
+    function decideGhost(a, prev) {
+      var options = openDirs(a, prev);
+      if (!options.length) { a.dir = prev ? OPP[prev] : null; return; }
+      a.dir = Math.random() < 0.62
+        ? chaseDir(a, options)
+        : options[Math.floor(Math.random() * options.length)];
     }
 
     function update(dt) {
@@ -254,6 +263,15 @@
       ctx.clearRect(0, 0, W, H);
       if (th.bg !== 'transparent') { ctx.fillStyle = th.bg; ctx.fillRect(0, 0, W, H); }
 
+      drawBoard();
+      drawActors();
+      drawHud();
+
+      if (st === 'idle') overlay('404 MAZE', null);
+      else if (st === 'over') overlay('GAME OVER', String(score));
+    }
+
+    function drawBoard() {
       // walls
       ctx.fillStyle = th.fg;
       ctx.globalAlpha = 0.22;
@@ -274,9 +292,13 @@
         ctx.arc((+parts[0] + 0.5) * CELL, HUD + (+parts[1] + 0.5) * CELL, 2.4, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
 
-      // player: the muncher
-      if (st !== 'idle' && (invulnT <= 0 || Math.floor(invulnT * 8) % 2 === 0)) {
+    function drawActors() {
+      if (st === 'idle') return;
+
+      // player: the muncher (blinks while invulnerable)
+      if (invulnT <= 0 || Math.floor(invulnT * 8) % 2 === 0) {
         var mouth = 0.28 + 0.24 * Math.sin(mouthT * 12);
         var ang = { right: 0, left: Math.PI, up: -Math.PI / 2, down: Math.PI / 2 }[player.dir || 'right'] || 0;
         ctx.fillStyle = th.accent;
@@ -287,15 +309,13 @@
         ctx.fill();
       }
 
-      // ghosts
       ctx.fillStyle = th.fg;
-      if (st !== 'idle') {
-        for (var i = 0; i < ghosts.length; i++) {
-          drawGhost(px(ghosts[i]), py(ghosts[i]), CELL * 0.4, i === 0 ? 0.95 : 0.6);
-        }
+      for (var i = 0; i < ghosts.length; i++) {
+        drawGhost(px(ghosts[i]), py(ghosts[i]), CELL * 0.4, i === 0 ? 0.95 : 0.6);
       }
+    }
 
-      // HUD
+    function drawHud() {
       ctx.fillStyle = th.fg;
       ctx.font = font(13);
       ctx.textAlign = 'left';
@@ -306,11 +326,8 @@
       ctx.globalAlpha = 1;
       ctx.textAlign = 'right';
       var hearts = '';
-      for (i = 0; i < lives; i++) hearts += '♥ ';
+      for (var i = 0; i < lives; i++) hearts += '♥ ';
       ctx.fillText(hearts.trim(), W - 10, 18);
-
-      if (st === 'idle') overlay('404 MAZE', null);
-      else if (st === 'over') overlay('GAME OVER', String(score));
     }
 
     function overlay(title, sub) {

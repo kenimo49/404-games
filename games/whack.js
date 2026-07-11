@@ -116,59 +116,63 @@
       ctx.clearRect(0, 0, W, H);
       if (th.bg !== 'transparent') { ctx.fillStyle = th.bg; ctx.fillRect(0, 0, W, H); }
 
-      // holes + tiles
-      for (var i = 0; i < 9; i++) {
-        var p = holePos(i);
-        ctx.fillStyle = th.fg;
-        ctx.globalAlpha = 0.25;
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y + 18, 38, 10, 0, 0, Math.PI * 2);
+      for (var i = 0; i < 9; i++) drawHole(i);
+      drawFlash();
+      drawHud();
+
+      if (st === 'idle') overlay('404 WHACK', '404 = +10   200 = -30');
+      else if (st === 'over') overlay('TIME UP', String(score));
+    }
+
+    function drawHole(i) {
+      var p = holePos(i);
+      ctx.fillStyle = th.fg;
+      ctx.globalAlpha = 0.25;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y + 18, 38, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      var m = holes[i];
+      if (!m) return;
+
+      // pop in/out scale
+      var k = Math.min(1, (m.total - m.t) / 0.12, m.t / 0.12);
+      var h = TILE_H * Math.max(0.2, k);
+      var y = p.y + 14 - h;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(p.x - TILE_W / 2, y, TILE_W, h, 7);
+      else ctx.rect(p.x - TILE_W / 2, y, TILE_W, h);
+      if (m.ch === '404') {
+        ctx.fillStyle = th.accent;
         ctx.fill();
-        ctx.globalAlpha = 1;
-
-        var m = holes[i];
-        if (m) {
-          // pop in/out scale
-          var k = Math.min(1, (m.total - m.t) / 0.12, m.t / 0.12);
-          var h = TILE_H * Math.max(0.2, k);
-          var y = p.y + 14 - h;
-          if (m.ch === '404') {
-            ctx.fillStyle = th.accent;
-            ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(p.x - TILE_W / 2, y, TILE_W, h, 7);
-            else ctx.rect(p.x - TILE_W / 2, y, TILE_W, h);
-            ctx.fill();
-            ctx.fillStyle = th.bg !== 'transparent' ? th.bg : '#fff';
-          } else {
-            ctx.strokeStyle = th.fg;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(p.x - TILE_W / 2, y, TILE_W, h, 7);
-            else ctx.rect(p.x - TILE_W / 2, y, TILE_W, h);
-            ctx.stroke();
-            ctx.fillStyle = th.fg;
-          }
-          if (k > 0.5) {
-            ctx.font = font(17);
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(m.ch, p.x, y + h / 2 + 1);
-          }
-        }
-      }
-
-      // hit/miss flash
-      if (flash) {
+        ctx.fillStyle = th.bg !== 'transparent' ? th.bg : '#fff';
+      } else {
+        ctx.strokeStyle = th.fg;
+        ctx.lineWidth = 2;
+        ctx.stroke();
         ctx.fillStyle = th.fg;
-        ctx.globalAlpha = Math.min(1, flash.t * 4);
-        ctx.font = font(15);
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText(flash.txt, flash.x, flash.y);
-        ctx.globalAlpha = 1;
       }
+      if (k > 0.5) {
+        ctx.font = font(17);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(m.ch, p.x, y + h / 2 + 1);
+      }
+    }
 
-      // HUD: score, hi, time bar
+    function drawFlash() {
+      if (!flash) return;
+      ctx.fillStyle = th.fg;
+      ctx.globalAlpha = Math.min(1, flash.t * 4);
+      ctx.font = font(15);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(flash.txt, flash.x, flash.y);
+      ctx.globalAlpha = 1;
+    }
+
+    function drawHud() {
       ctx.fillStyle = th.fg;
       ctx.font = font(14);
       ctx.textAlign = 'left';
@@ -183,9 +187,6 @@
       ctx.globalAlpha = 1;
       ctx.fillStyle = th.accent;
       ctx.fillRect(W - 131, 13, 118 * (timeLeft / TIME), 8);
-
-      if (st === 'idle') overlay('404 WHACK', '404 = +10   200 = -30');
-      else if (st === 'over') overlay('TIME UP', String(score));
     }
 
     function overlay(title, sub) {

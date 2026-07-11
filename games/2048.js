@@ -172,40 +172,41 @@
       ctx.globalAlpha = 1;
 
       for (var r = 0; r < N; r++) {
-        for (var c = 0; c < N; c++) {
-          var x = PAD + c * (CELL + PAD);
-          var y = HEAD + PAD + r * (CELL + PAD);
-          // empty cell
-          ctx.fillStyle = th.fg;
-          ctx.globalAlpha = 0.07;
-          ctx.beginPath();
-          if (ctx.roundRect) ctx.roundRect(x, y, CELL, CELL, 6);
-          else ctx.rect(x, y, CELL, CELL);
-          ctx.fill();
-          ctx.globalAlpha = 1;
-
-          var v = grid[r][c];
-          if (v) {
-            var mag = Math.log(v) / Math.LN2; // 1..11+
-            ctx.fillStyle = th.accent;
-            ctx.globalAlpha = Math.min(0.95, 0.16 + mag * 0.08);
-            ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(x, y, CELL, CELL, 6);
-            else ctx.rect(x, y, CELL, CELL);
-            ctx.fill();
-            ctx.globalAlpha = 1;
-            ctx.fillStyle = th.fg;
-            var fs = v < 100 ? 30 : v < 1000 ? 26 : 21;
-            ctx.font = font(fs);
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(String(v), x + CELL / 2, y + CELL / 2 + 2);
-          }
-        }
+        for (var c = 0; c < N; c++) drawCell(r, c);
       }
 
       if (st === 'idle') overlay('404 2048', null);
       else if (st === 'over') overlay('GAME OVER', String(score));
+    }
+
+    function cellRect(x, y) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, CELL, CELL, 6);
+      else ctx.rect(x, y, CELL, CELL);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawCell(r, c) {
+      var x = PAD + c * (CELL + PAD);
+      var y = HEAD + PAD + r * (CELL + PAD);
+      // empty cell
+      ctx.fillStyle = th.fg;
+      ctx.globalAlpha = 0.07;
+      cellRect(x, y);
+
+      var v = grid[r][c];
+      if (!v) return;
+      var mag = Math.log(v) / Math.LN2; // 1..11+
+      ctx.fillStyle = th.accent;
+      ctx.globalAlpha = Math.min(0.95, 0.16 + mag * 0.08);
+      cellRect(x, y);
+      ctx.fillStyle = th.fg;
+      var fs = v < 100 ? 30 : v < 1000 ? 26 : 21;
+      ctx.font = font(fs);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(v), x + CELL / 2, y + CELL / 2 + 2);
     }
 
     function overlay(title, sub) {

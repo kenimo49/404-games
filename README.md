@@ -127,6 +127,17 @@ There is no build. Edit a file under `games/`, open `demo/index.html` in a
 browser (a `file://` URL works), and play. The demo page includes a light/dark
 toggle to check theming.
 
+### Testing
+
+`test/smoke.mjs` mounts every game plus the arcade in headless Chrome, starts
+each one, pokes the controls, and fails on any page error. puppeteer is the
+only requirement (not vendored):
+
+```bash
+npm install --no-save --no-package-lock puppeteer
+node test/smoke.mjs
+```
+
 ## License
 
 [MIT](LICENSE) © ken imoto

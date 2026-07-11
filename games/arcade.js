@@ -43,26 +43,7 @@
     return '';
   }
 
-  function loadGame(id, base, cb) {
-    if (window.Games404 && window.Games404[id]) return cb(null);
-    var s = document.createElement('script');
-    s.src = base + id + '.js';
-    s.onload = function () { cb(window.Games404 && window.Games404[id] ? null : new Error('bad game file')); };
-    s.onerror = function () { cb(new Error('load failed')); };
-    document.head.appendChild(s);
-  }
-
-  function mount(root, opts) {
-    opts = opts || {};
-    var base = opts.base || defaultBase();
-    var games = ((window.Games404 && window.Games404.extraGames) || []).concat(GAMES);
-    var instance = null;
-
-    var wrap = document.createElement('div');
-    wrap.style.maxWidth = '640px';
-    wrap.style.margin = '0 auto';
-    wrap.style.textAlign = 'center';
-
+  function makeHeader(noTitle) {
     var bar = document.createElement('div');
     bar.style.display = 'flex';
     bar.style.alignItems = 'center';
@@ -96,10 +77,83 @@
 
     bar.appendChild(title);
     bar.appendChild(back);
-    if (opts.noTitle || root.hasAttribute('data-no-title')) {
+    if (noTitle) {
       title.style.display = 'none';
       bar.style.justifyContent = 'flex-end';
     }
+    return { bar: bar, back: back };
+  }
+
+  function makeTile(g) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.style.font = 'inherit';
+    b.style.color = 'inherit';
+    b.style.background = 'none';
+    b.style.border = '1px solid currentColor';
+    b.style.borderRadius = '10px';
+    b.style.padding = '0.7rem 0.4rem 0.55rem';
+    b.style.cursor = 'pointer';
+    b.style.display = 'flex';
+    b.style.flexDirection = 'column';
+    b.style.alignItems = 'center';
+    b.style.gap = '6px';
+    b.style.opacity = '0.85';
+    b.onmouseenter = function () { b.style.opacity = '1'; };
+    b.onmouseleave = function () { b.style.opacity = '0.85'; };
+
+    var ic = document.createElement('span');
+    ic.textContent = g.icon;
+    ic.style.fontSize = '1.5rem';
+    ic.style.lineHeight = '1';
+    var lb = document.createElement('span');
+    lb.textContent = g.label;
+    lb.style.fontFamily = 'ui-monospace, Menlo, Consolas, monospace';
+    lb.style.fontSize = '0.68rem';
+    lb.style.fontWeight = '700';
+    lb.style.letterSpacing = '0.08em';
+
+    b.appendChild(ic);
+    b.appendChild(lb);
+    return b;
+  }
+
+  // what to open on load: ?g404= deep link > data-default; null = stay on the menu
+  function pickAutoOpen(games, root, opts) {
+    function known(id) {
+      for (var i = 0; i < games.length; i++) if (games[i].id === id) return true;
+      return false;
+    }
+    var m = null;
+    try { m = /[?&]g404=([a-z0-9]+)/.exec(window.location.search); } catch (e) {}
+    if (m && m[1] === 'menu') return null; // forced menu overrides data-default
+    if (m && known(m[1])) return m[1];
+    var def = root.getAttribute('data-default') || opts.defaultGame;
+    return def && known(def) ? def : null;
+  }
+
+  function loadGame(id, base, cb) {
+    if (window.Games404 && window.Games404[id]) return cb(null);
+    var s = document.createElement('script');
+    s.src = base + id + '.js';
+    s.onload = function () { cb(window.Games404 && window.Games404[id] ? null : new Error('bad game file')); };
+    s.onerror = function () { cb(new Error('load failed')); };
+    document.head.appendChild(s);
+  }
+
+  function mount(root, opts) {
+    opts = opts || {};
+    var base = opts.base || defaultBase();
+    var games = ((window.Games404 && window.Games404.extraGames) || []).concat(GAMES);
+    var instance = null;
+
+    var wrap = document.createElement('div');
+    wrap.style.maxWidth = '640px';
+    wrap.style.margin = '0 auto';
+    wrap.style.textAlign = 'center';
+
+    var head = makeHeader(opts.noTitle || root.hasAttribute('data-no-title'));
+    var bar = head.bar, back = head.back;
 
     var menu = document.createElement('div');
     menu.style.display = 'grid';
@@ -144,36 +198,7 @@
     }
 
     games.forEach(function (g) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.style.font = 'inherit';
-      b.style.color = 'inherit';
-      b.style.background = 'none';
-      b.style.border = '1px solid currentColor';
-      b.style.borderRadius = '10px';
-      b.style.padding = '0.7rem 0.4rem 0.55rem';
-      b.style.cursor = 'pointer';
-      b.style.display = 'flex';
-      b.style.flexDirection = 'column';
-      b.style.alignItems = 'center';
-      b.style.gap = '6px';
-      b.style.opacity = '0.85';
-      b.onmouseenter = function () { b.style.opacity = '1'; };
-      b.onmouseleave = function () { b.style.opacity = '0.85'; };
-
-      var ic = document.createElement('span');
-      ic.textContent = g.icon;
-      ic.style.fontSize = '1.5rem';
-      ic.style.lineHeight = '1';
-      var lb = document.createElement('span');
-      lb.textContent = g.label;
-      lb.style.fontFamily = 'ui-monospace, Menlo, Consolas, monospace';
-      lb.style.fontSize = '0.68rem';
-      lb.style.fontWeight = '700';
-      lb.style.letterSpacing = '0.08em';
-
-      b.appendChild(ic);
-      b.appendChild(lb);
+      var b = makeTile(g);
       b.addEventListener('click', function () { showGame(g.id); });
       menu.appendChild(b);
     });
@@ -186,28 +211,8 @@
     wrap.appendChild(stage);
     root.appendChild(wrap);
 
-    // deep link (?g404=<id>) wins over the data-default game
-    var opened = false;
-    try {
-      var m = /[?&]g404=([a-z0-9]+)/.exec(window.location.search);
-      if (m) {
-        if (m[1] === 'menu') {
-          opened = true; // stay on the menu, overriding data-default
-        } else {
-          for (var i = 0; i < games.length; i++) {
-            if (games[i].id === m[1]) { showGame(m[1]); opened = true; break; }
-          }
-        }
-      }
-    } catch (e) {}
-    if (!opened) {
-      var def = root.getAttribute('data-default') || opts.defaultGame;
-      if (def) {
-        for (var j = 0; j < games.length; j++) {
-          if (games[j].id === def) { showGame(def); break; }
-        }
-      }
-    }
+    var auto = pickAutoOpen(games, root, opts);
+    if (auto) showGame(auto);
 
     return {
       destroy: function () {
