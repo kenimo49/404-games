@@ -199,17 +199,30 @@
         : options[Math.floor(Math.random() * options.length)];
     }
 
-    function update(dt) {
-      mouthT += dt;
-      if (invulnT > 0) invulnT -= dt;
-
-      // allow instant reversal for responsiveness
+    // allow instant reversal for responsiveness
+    function applyReversal() {
       if (player.want && player.dir && player.want === OPP[player.dir]) {
         player.c += DIRS[player.dir][0];
         player.r += DIRS[player.dir][1];
         player.dir = player.want;
         player.prog = 1 - player.prog;
       }
+    }
+
+    function hitGhost() {
+      if (invulnT > 0) return false;
+      for (var i = 0; i < ghosts.length; i++) {
+        var dx = px(player) - px(ghosts[i]), dy = py(player) - py(ghosts[i]);
+        if (dx * dx + dy * dy < (CELL * 0.58) * (CELL * 0.58)) return true;
+      }
+      return false;
+    }
+
+    function update(dt) {
+      mouthT += dt;
+      if (invulnT > 0) invulnT -= dt;
+
+      applyReversal();
       stepActor(player, dt, decidePlayer);
       for (var i = 0; i < ghosts.length; i++) stepActor(ghosts[i], dt, decideGhost);
 
@@ -221,16 +234,10 @@
         return;
       }
 
-      if (invulnT <= 0) {
-        for (i = 0; i < ghosts.length; i++) {
-          var dx = px(player) - px(ghosts[i]), dy = py(player) - py(ghosts[i]);
-          if (dx * dx + dy * dy < (CELL * 0.58) * (CELL * 0.58)) {
-            lives--;
-            if (lives <= 0) return gameOver();
-            resetPositions();
-            return;
-          }
-        }
+      if (hitGhost()) {
+        lives--;
+        if (lives <= 0) return gameOver();
+        resetPositions();
       }
     }
 

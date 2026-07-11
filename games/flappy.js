@@ -76,21 +76,16 @@
       if (score > hi) { hi = score; saveHi(hi); }
     }
 
-    function update(dt) {
-      bv += 1150 * dt;
-      by += bv * dt;
-      if (by < 12) { by = 12; bv = 0; }
-      if (by > GROUND - 12) return gameOver();
+    function spawnPipe() {
+      var gap = Math.max(122, 165 - score * 1.6);
+      var cy = 70 + gap / 2 + Math.random() * (GROUND - 140 - gap);
+      pipes.push({ x: W + PIPE_W, cy: cy, gap: gap, ch: digits[digitIdx], passed: false });
+      digitIdx = (digitIdx + 1) % digits.length;
+      spawnT = 1.55;
+    }
 
-      spawnT -= dt;
-      if (spawnT <= 0) {
-        var gap = Math.max(122, 165 - score * 1.6);
-        var cy = 70 + gap / 2 + Math.random() * (GROUND - 140 - gap);
-        pipes.push({ x: W + PIPE_W, cy: cy, gap: gap, ch: digits[digitIdx], passed: false });
-        digitIdx = (digitIdx + 1) % digits.length;
-        spawnT = 1.55;
-      }
-
+    // true = the bird clipped a pipe
+    function movePipes(dt) {
       var speed = 135 + Math.min(60, score * 1.5);
       for (var i = pipes.length - 1; i >= 0; i--) {
         var p = pipes[i];
@@ -99,9 +94,21 @@
         if (p.x + PIPE_W < -10) pipes.splice(i, 1);
         // collision: bird circle at (92, by) r=11 vs pipe rects
         if (92 + 10 > p.x && 92 - 10 < p.x + PIPE_W) {
-          if (by - 10 < p.cy - p.gap / 2 || by + 10 > p.cy + p.gap / 2) return gameOver();
+          if (by - 10 < p.cy - p.gap / 2 || by + 10 > p.cy + p.gap / 2) return true;
         }
       }
+      return false;
+    }
+
+    function update(dt) {
+      bv += 1150 * dt;
+      by += bv * dt;
+      if (by < 12) { by = 12; bv = 0; }
+      if (by > GROUND - 12) return gameOver();
+
+      spawnT -= dt;
+      if (spawnT <= 0) spawnPipe();
+      if (movePipes(dt)) return gameOver();
     }
 
     function draw() {

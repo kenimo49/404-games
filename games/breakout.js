@@ -143,20 +143,27 @@
       }
     }
 
+    function ballTouches(b) {
+      return bx + BALL_R > b.x && bx - BALL_R < b.x + b.w &&
+             by + BALL_R > b.y && by - BALL_R < b.y + b.h;
+    }
+
+    // reflect on the axis of least penetration
+    function reflectOffBrick(b) {
+      var overX = Math.min(bx + BALL_R - b.x, b.x + b.w - (bx - BALL_R));
+      var overY = Math.min(by + BALL_R - b.y, b.y + b.h - (by - BALL_R));
+      if (overX < overY) bvx = bx < b.x + b.w / 2 ? -Math.abs(bvx) : Math.abs(bvx);
+      else bvy = by < b.y + b.h / 2 ? -Math.abs(bvy) : Math.abs(bvy);
+    }
+
     function hitBricks() {
       for (var i = 0; i < bricks.length; i++) {
         var b = bricks[i];
-        if (!b.alive) continue;
-        if (bx + BALL_R > b.x && bx - BALL_R < b.x + b.w && by + BALL_R > b.y && by - BALL_R < b.y + b.h) {
-          b.alive = false;
-          score += 10;
-          // reflect on the axis of least penetration
-          var overX = Math.min(bx + BALL_R - b.x, b.x + b.w - (bx - BALL_R));
-          var overY = Math.min(by + BALL_R - b.y, b.y + b.h - (by - BALL_R));
-          if (overX < overY) bvx = bx < b.x + b.w / 2 ? -Math.abs(bvx) : Math.abs(bvx);
-          else bvy = by < b.y + b.h / 2 ? -Math.abs(bvy) : Math.abs(bvy);
-          return;
-        }
+        if (!b.alive || !ballTouches(b)) continue;
+        b.alive = false;
+        score += 10;
+        reflectOffBrick(b);
+        return;
       }
     }
 

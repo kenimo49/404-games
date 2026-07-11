@@ -131,6 +131,16 @@
       ctx.clearRect(0, 0, W, H);
       if (th.bg !== 'transparent') { ctx.fillStyle = th.bg; ctx.fillRect(0, 0, W, H); }
 
+      drawBackdrop();
+      drawObstacles();
+      drawPlayer();
+      drawScore();
+
+      if (st === 'idle') overlay('404 RUNNER', null);
+      else if (st === 'over') overlay('GAME OVER', String(score));
+    }
+
+    function drawBackdrop() {
       // clouds
       ctx.globalAlpha = 0.18;
       ctx.fillStyle = th.fg;
@@ -155,17 +165,21 @@
         ctx.fillRect(tx, GROUND + 6, 10, 1.5);
       }
       ctx.globalAlpha = 1;
+    }
 
-      // obstacles: the 404 blocks
+    function drawObstacles() {
+      // the 404 blocks
       ctx.fillStyle = th.accent;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
-      for (i = 0; i < obs.length; i++) {
+      for (var i = 0; i < obs.length; i++) {
         ctx.font = font(obs[i].size);
         ctx.fillText(obs[i].ch, obs[i].x, GROUND);
       }
+    }
 
-      // player: a little blob with an eye
+    function drawPlayer() {
+      // a little blob with an eye
       ctx.fillStyle = th.fg;
       var run = st === 'run' && py >= GROUND - 0.5;
       var phase = Math.floor(dist / 14) % 2;
@@ -182,8 +196,9 @@
       }
       ctx.fillStyle = th.bg !== 'transparent' ? th.bg : '#fff';
       ctx.fillRect(60, py - 19, 4, 4);
+    }
 
-      // score
+    function drawScore() {
       ctx.fillStyle = th.fg;
       ctx.font = font(13);
       ctx.textAlign = 'right';
@@ -191,9 +206,6 @@
       ctx.fillText('HI ' + String(hi).padStart(5, '0'), W - 90, 20);
       ctx.globalAlpha = 1;
       ctx.fillText(String(score).padStart(5, '0'), W - 12, 20);
-
-      if (st === 'idle') overlay('404 RUNNER', null);
-      else if (st === 'over') overlay('GAME OVER', String(score));
     }
 
     function overlay(title, sub) {

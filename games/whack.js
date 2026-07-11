@@ -81,29 +81,34 @@
       if (score > hi) { hi = score; saveHi(hi); }
     }
 
-    function update(dt) {
-      timeLeft -= dt;
-      if (timeLeft <= 0) { timeLeft = 0; return gameOver(); }
-
-      var progress = 1 - timeLeft / TIME;
-      spawnT -= dt;
-      if (spawnT <= 0) {
-        var empty = [];
-        for (var i = 0; i < 9; i++) if (!holes[i]) empty.push(i);
-        if (empty.length) {
-          var idx = empty[Math.floor(Math.random() * empty.length)];
-          var isOk = Math.random() < 0.22;
-          var life = Math.max(0.55, 1.05 - progress * 0.45);
-          holes[idx] = { ch: isOk ? '200' : '404', t: life, total: life };
-        }
-        spawnT = Math.max(0.28, 0.65 - progress * 0.3) * (0.7 + Math.random() * 0.6);
+    function spawnMole(progress) {
+      var empty = [];
+      for (var i = 0; i < 9; i++) if (!holes[i]) empty.push(i);
+      if (empty.length) {
+        var idx = empty[Math.floor(Math.random() * empty.length)];
+        var isOk = Math.random() < 0.22;
+        var life = Math.max(0.55, 1.05 - progress * 0.45);
+        holes[idx] = { ch: isOk ? '200' : '404', t: life, total: life };
       }
-      for (i = 0; i < 9; i++) {
+      spawnT = Math.max(0.28, 0.65 - progress * 0.3) * (0.7 + Math.random() * 0.6);
+    }
+
+    function tickHoles(dt) {
+      for (var i = 0; i < 9; i++) {
         if (holes[i]) {
           holes[i].t -= dt;
           if (holes[i].t <= 0) holes[i] = null;
         }
       }
+    }
+
+    function update(dt) {
+      timeLeft -= dt;
+      if (timeLeft <= 0) { timeLeft = 0; return gameOver(); }
+
+      spawnT -= dt;
+      if (spawnT <= 0) spawnMole(1 - timeLeft / TIME);
+      tickHoles(dt);
       if (flash) {
         flash.t -= dt;
         if (flash.t <= 0) flash = null;

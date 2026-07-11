@@ -107,26 +107,28 @@
       return { gained: gained, moved: moved };
     }
 
-    function move(dir) { // 0=left 1=right 2=up 3=down
-      var moved = false, gained = 0, r, c, line, res;
+    // [row, col] of the i-th cell of the k-th line, walking in slide direction
+    function lineCell(dir, k, i) { // 0=left 1=right 2=up 3=down
+      if (dir === 0) return [k, i];
+      if (dir === 1) return [k, N - 1 - i];
+      if (dir === 2) return [i, k];
+      return [N - 1 - i, k];
+    }
+
+    function move(dir) {
+      var moved = false, gained = 0;
       for (var k = 0; k < N; k++) {
-        line = [];
+        var line = [];
         for (var i = 0; i < N; i++) {
-          if (dir === 0) { r = k; c = i; }
-          else if (dir === 1) { r = k; c = N - 1 - i; }
-          else if (dir === 2) { r = i; c = k; }
-          else { r = N - 1 - i; c = k; }
-          line.push(grid[r][c]);
+          var p = lineCell(dir, k, i);
+          line.push(grid[p[0]][p[1]]);
         }
-        res = slide(line);
+        var res = slide(line);
         moved = moved || res.moved;
         gained += res.gained;
         for (i = 0; i < N; i++) {
-          if (dir === 0) { r = k; c = i; }
-          else if (dir === 1) { r = k; c = N - 1 - i; }
-          else if (dir === 2) { r = i; c = k; }
-          else { r = N - 1 - i; c = k; }
-          grid[r][c] = line[i];
+          var q = lineCell(dir, k, i);
+          grid[q[0]][q[1]] = line[i];
         }
       }
       if (moved) {

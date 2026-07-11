@@ -84,7 +84,7 @@
       if (myScore > hi) { hi = myScore; saveHi(hi); }
     }
 
-    function update(dt) {
+    function movePaddles(dt) {
       if (keyUp) pY -= 340 * dt;
       if (keyDown) pY += 340 * dt;
       pY = Math.max(PH / 2, Math.min(H - PH / 2, pY));
@@ -94,9 +94,9 @@
       var dy = by - aiY;
       if (Math.abs(dy) > 6) aiY += Math.max(-aiMax * dt, Math.min(aiMax * dt, dy));
       aiY = Math.max(PH / 2, Math.min(H - PH / 2, aiY));
+    }
 
-      if (serveT > 0) { serveT -= dt; return; }
-
+    function moveBall(dt) {
       bx += bvx * dt;
       by += bvy * dt;
       if (by < 5) { by = 5; bvy = Math.abs(bvy); }
@@ -115,7 +115,9 @@
         bvx = Math.max(bvx, -560);
       }
       bvy = Math.max(-420, Math.min(420, bvy));
+    }
 
+    function settlePoint() {
       if (bx < -10) {
         aiScore++;
         if (aiScore >= WIN) return gameOver();
@@ -125,6 +127,13 @@
         if (myScore >= WIN) return gameOver();
         serve(false);
       }
+    }
+
+    function update(dt) {
+      movePaddles(dt);
+      if (serveT > 0) { serveT -= dt; return; }
+      moveBall(dt);
+      settlePoint();
     }
 
     function draw() {
