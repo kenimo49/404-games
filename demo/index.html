@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 Games — demo</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1f2937;
+    --accent: #1e3a5f;
+  }
+  body.dark {
+    --bg: #101418;
+    --fg: #e5e7eb;
+    --accent: #7aa2d4;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    padding: 2rem 1rem 4rem;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.3rem; letter-spacing: 0.1em; }
+  h2 { font-size: 0.95rem; letter-spacing: 0.12em; opacity: 0.75; margin: 3rem 0 1rem; border-top: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); padding-top: 1.5rem; }
+  p { font-size: 0.85rem; opacity: 0.8; line-height: 1.6; }
+  button.toggle {
+    font: inherit; color: inherit; background: none;
+    border: 1px solid currentColor; border-radius: 8px;
+    padding: 0.35rem 0.8rem; cursor: pointer;
+  }
+  .game-box {
+    /* every game reads these variables from its container */
+    --g404-fg: var(--fg);
+    --g404-bg: transparent;
+    --g404-accent: var(--accent);
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>404 GAMES — DEMO</h1>
+  <p>Ten single-file canvas mini games for 404 pages, inspired by famous error pages
+     and arcade classics. Theme-aware via CSS variables.
+     <button class="toggle" onclick="document.body.classList.toggle('dark')">light / dark</button></p>
+
+  <h2>ARCADE (the picker)</h2>
+  <div class="game-box" data-404-arcade></div>
+
+  <h2>RUNNER</h2>
+  <div class="game-box" data-404-game="runner"></div>
+
+  <h2>INVADERS</h2>
+  <div class="game-box" data-404-game="invaders"></div>
+
+  <h2>BREAKOUT</h2>
+  <div class="game-box" data-404-game="breakout"></div>
+
+  <h2>SNAKE</h2>
+  <div class="game-box" data-404-game="snake"></div>
+
+  <h2>PONG</h2>
+  <div class="game-box" data-404-game="pong"></div>
+
+  <h2>FLAPPY</h2>
+  <div class="game-box" data-404-game="flappy"></div>
+
+  <h2>MAZE</h2>
+  <div class="game-box" data-404-game="maze"></div>
+
+  <h2>ASTEROIDS</h2>
+  <div class="game-box" data-404-game="asteroids"></div>
+
+  <h2>WHACK</h2>
+  <div class="game-box" data-404-game="whack"></div>
+
+  <h2>2048</h2>
+  <div class="game-box" data-404-game="2048"></div>
+</main>
+
+<script src="../games/arcade.js"></script>
+<script src="../games/runner.js"></script>
+<script src="../games/invaders.js"></script>
+<script src="../games/breakout.js"></script>
+<script src="../games/snake.js"></script>
+<script src="../games/pong.js"></script>
+<script src="../games/flappy.js"></script>
+<script src="../games/maze.js"></script>
+<script src="../games/asteroids.js"></script>
+<script src="../games/whack.js"></script>
+<script src="../games/2048.js"></script>
+</body>
+</html>
