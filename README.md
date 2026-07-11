@@ -6,29 +6,29 @@ pages and arcade classics. Vanilla JS, zero dependencies, no build step,
 play instead of bouncing.
 
 [日本語版 README](README.ja.md) · Live demo: visit any broken URL on
-[kenimoto.dev](https://kenimoto.dev/404) — e.g. [kenimoto.dev/notexist](https://kenimoto.dev/notexist)
+[kenimoto.dev](https://kenimoto.dev/404), e.g. [kenimoto.dev/notexist](https://kenimoto.dev/notexist)
 
 ## The games
 
 | Game | Inspired by | File |
 |------|-------------|------|
-| 🦖 RUNNER | Chrome's offline dinosaur runner — jump over the 404 blocks | `games/runner.js` |
-| 👾 INVADERS | [Kualo's Space Invaders 404](https://www.kualo.com/404) — the formation spells "404" | `games/invaders.js` |
-| 🧱 BREAKOUT | Atari Breakout — the bricks spell "404" | `games/breakout.js` |
-| 🐍 SNAKE | Nokia / Google Snake — eat the zeros | `games/snake.js` |
-| 🏓 PONG | Pong (Atari, 1972) — first to 7 beats the machine | `games/pong.js` |
-| 🐤 FLAPPY | Flappy Bird — flap between the 4-0-4 pipes | `games/flappy.js` |
-| 👻 MAZE | The classic arcade dot-muncher — clear the maze, dodge two ghosts | `games/maze.js` |
-| ☄️ ASTEROIDS | Asteroids (Atari, 1979) — blast the drifting 4s and 0s | `games/asteroids.js` |
-| 🔨 WHACK | Whack-a-mole, HTTP edition — smash the 404s, spare the 200 OK | `games/whack.js` |
-| 🔢 2048 | [2048 by Gabriele Cirulli](https://github.com/gabrielecirulli/2048) — slide and merge | `games/2048.js` |
+| 🦖 RUNNER | Chrome's offline dinosaur runner. Jump over the 404 blocks | `games/runner.js` |
+| 👾 INVADERS | [Kualo's Space Invaders 404](https://www.kualo.com/404). The formation spells "404" | `games/invaders.js` |
+| 🧱 BREAKOUT | Atari Breakout. The bricks spell "404" | `games/breakout.js` |
+| 🐍 SNAKE | Nokia / Google Snake. Eat the zeros | `games/snake.js` |
+| 🏓 PONG | Pong (Atari, 1972). First to 7 beats the machine | `games/pong.js` |
+| 🐤 FLAPPY | Flappy Bird. Flap between the 4-0-4 pipes | `games/flappy.js` |
+| 👻 MAZE | The classic arcade dot-muncher. Clear the maze, dodge two ghosts | `games/maze.js` |
+| ☄️ ASTEROIDS | Asteroids (Atari, 1979). Blast the drifting 4s and 0s | `games/asteroids.js` |
+| 🔨 WHACK | Whack-a-mole, HTTP edition. Smash the 404s, spare the 200 OK | `games/whack.js` |
+| 🔢 2048 | [2048 by Gabriele Cirulli](https://github.com/gabrielecirulli/2048). Slide and merge | `games/2048.js` |
 
 All implementations are original homages: generic shapes, pixel-art drawn in
 code, no copied assets or trademarks.
 
 ## Quick start
 
-### Option A — the arcade (menu of all ten, recommended)
+### Option A: the arcade (menu of all ten, recommended)
 
 Copy the `games/` directory to your site, then:
 
@@ -43,7 +43,7 @@ Deep-link a game with `?g404=runner` in the page URL. Add `data-no-title` to
 the container to hide the built-in "404 ARCADE" heading when your page
 provides its own.
 
-### Option B — a single game
+### Option B: a single game
 
 Copy one file. Each game is fully standalone:
 
@@ -52,7 +52,7 @@ Copy one file. Each game is fully standalone:
 <script src="/404-games/runner.js"></script>
 ```
 
-### Option C — programmatic
+### Option C: programmatic
 
 ```js
 const instance = Games404.runner.mount(document.querySelector('#stage'));
@@ -103,7 +103,7 @@ focus, so the game never hijacks the page.
 - **Responsive**: the canvas fills its container up to the game's native width
   and stays sharp on HiDPI screens.
 - **Language-neutral**: numbers, hearts and a handful of arcade-English words
-  (`GAME OVER`, `HI`) — safe for multilingual 404 pages.
+  (`GAME OVER`, `HI`), so it works on multilingual 404 pages as-is.
 - **Well-behaved 404 citizen**: no external requests, no cookies, nothing runs
   until the visitor starts a game. Keep your 404 HTTP status and `noindex`.
 

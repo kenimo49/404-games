@@ -8,22 +8,22 @@
 
 | ゲーム | オマージュ元 | ファイル |
 |--------|-------------|---------|
-| 🦖 RUNNER | Chromeのオフライン恐竜ランナー — 404ブロックを飛び越える | `games/runner.js` |
-| 👾 INVADERS | [KualoのSpace Invaders 404](https://www.kualo.com/404) — 編隊が「404」の形 | `games/invaders.js` |
-| 🧱 BREAKOUT | Atari Breakout — ブロックが「404」の形 | `games/breakout.js` |
-| 🐍 SNAKE | Nokia / Google Snake — ゼロを食べて伸びる | `games/snake.js` |
-| 🏓 PONG | Pong（Atari、1972） — 7点先取でマシンに勝つ | `games/pong.js` |
-| 🐤 FLAPPY | Flappy Bird — 4-0-4の土管の隙間を飛ぶ | `games/flappy.js` |
-| 👻 MAZE | クラシックなドットイーター — ドットを食べ尽くしゴーストをかわす | `games/maze.js` |
-| ☄️ ASTEROIDS | Asteroids（Atari、1979） — 漂う4と0を撃ち砕く | `games/asteroids.js` |
-| 🔨 WHACK | モグラ叩きHTTP版 — 404を叩き、200 OKは見逃す | `games/whack.js` |
-| 🔢 2048 | [2048（Gabriele Cirulli作）](https://github.com/gabrielecirulli/2048) — スライドしてマージ | `games/2048.js` |
+| 🦖 RUNNER | Chromeのオフライン恐竜ランナー。404ブロックを飛び越える | `games/runner.js` |
+| 👾 INVADERS | [KualoのSpace Invaders 404](https://www.kualo.com/404)。編隊が「404」の形 | `games/invaders.js` |
+| 🧱 BREAKOUT | Atari Breakout。ブロックが「404」の形 | `games/breakout.js` |
+| 🐍 SNAKE | Nokia / Google Snake。ゼロを食べて伸びる | `games/snake.js` |
+| 🏓 PONG | Pong（Atari、1972）。7点先取でマシンに勝つ | `games/pong.js` |
+| 🐤 FLAPPY | Flappy Bird。4-0-4の土管の隙間を飛ぶ | `games/flappy.js` |
+| 👻 MAZE | クラシックなドットイーター。ドットを食べ尽くしゴーストをかわす | `games/maze.js` |
+| ☄️ ASTEROIDS | Asteroids（Atari、1979）。漂う4と0を撃ち砕く | `games/asteroids.js` |
+| 🔨 WHACK | モグラ叩きHTTP版。404を叩き、200 OKは見逃す | `games/whack.js` |
+| 🔢 2048 | [2048（Gabriele Cirulli作）](https://github.com/gabrielecirulli/2048)。スライドしてマージ | `games/2048.js` |
 
 実装はすべてオリジナルのオマージュです。図形とコード描画のピクセルアートのみで、アセットや商標のコピーは含みません。
 
 ## クイックスタート
 
-### 方法A — アーケード（10本のメニュー、推奨）
+### 方法A: アーケード（10本のメニュー、推奨）
 
 `games/` ディレクトリをサイトにコピーして:
 
@@ -34,7 +34,7 @@
 
 `arcade.js` がゲームメニューを描画し、選ばれたゲームを自分の配信元ディレクトリから遅延ロードします（`data-base="/some/path/"` で上書き可能）。URLに `?g404=runner` を付けると直接そのゲームが開きます。ページ側に独自の見出しがある場合は、コンテナに `data-no-title` を付けると内蔵の「404 ARCADE」見出しを非表示にできます。
 
-### 方法B — 1ゲームだけ
+### 方法B: 1ゲームだけ
 
 ファイルを1つコピーするだけ。各ゲームは完全に自己完結しています:
 
@@ -43,7 +43,7 @@
 <script src="/404-games/runner.js"></script>
 ```
 
-### 方法C — プログラムから
+### 方法C: プログラムから
 
 ```js
 const instance = Games404.runner.mount(document.querySelector('#stage'));
