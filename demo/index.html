@@ -9,11 +9,13 @@
     --bg: #ffffff;
     --fg: #1f2937;
     --accent: #1e3a5f;
+    --sep: rgba(31, 41, 55, 0.25);
   }
   body.dark {
     --bg: #101418;
     --fg: #e5e7eb;
     --accent: #7aa2d4;
+    --sep: rgba(229, 231, 235, 0.25);
   }
   body {
     margin: 0;
@@ -24,7 +26,7 @@
   }
   main { max-width: 720px; margin: 0 auto; }
   h1 { font-size: 1.3rem; letter-spacing: 0.1em; }
-  h2 { font-size: 0.95rem; letter-spacing: 0.12em; opacity: 0.75; margin: 3rem 0 1rem; border-top: 1px solid color-mix(in srgb, var(--fg) 25%, transparent); padding-top: 1.5rem; }
+  h2 { font-size: 0.95rem; letter-spacing: 0.12em; opacity: 0.75; margin: 3rem 0 1rem; border-top: 1px solid var(--sep); padding-top: 1.5rem; }
   p { font-size: 0.85rem; opacity: 0.8; line-height: 1.6; }
   button.toggle {
     font: inherit; color: inherit; background: none;

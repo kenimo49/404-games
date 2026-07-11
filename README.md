@@ -47,7 +47,8 @@ menu stays one back-button away).
 
 You can also add your own site-specific game to the menu: serve a `<id>.js`
 file next to the others (same mount conventions) and register its metadata
-before `arcade.js` loads. It appears first in the menu:
+before `arcade.js` loads. It appears first in the menu
+(ids must be lowercase alphanumerics to stay deep-linkable):
 
 ```html
 <script>
@@ -107,7 +108,7 @@ focus, so the game never hijacks the page.
 | FLAPPY | `Space` / `↑` flap | tap to flap |
 | MAZE | arrows / WASD | swipe |
 | ASTEROIDS | `←` `→` rotate, `↑` thrust, `Space` fire | drag to steer, tap to fire |
-| WHACK | — | click / tap the 404s |
+| WHACK | `1`-`9` hit the nine holes | click / tap the 404s |
 | 2048 | arrows / WASD | swipe |
 
 ## Behavior notes
@@ -118,8 +119,10 @@ focus, so the game never hijacks the page.
   and stays sharp on HiDPI screens.
 - **Language-neutral**: numbers, hearts and a handful of arcade-English words
   (`GAME OVER`, `HI`), so it works on multilingual 404 pages as-is.
-- **Well-behaved 404 citizen**: no external requests, no cookies, nothing runs
-  until the visitor starts a game. Keep your 404 HTTP status and `noindex`.
+- **Well-behaved 404 citizen**: no external requests, no cookies; games sit in
+  a light ~4fps standby until the visitor starts one. Keep your 404 HTTP status and `noindex`.
+- **Browser support**: evergreen browsers and Safari/iOS 13+ (Pointer Events
+  are the baseline; everything else degrades gracefully).
 
 ## Development
 

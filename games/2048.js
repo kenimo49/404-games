@@ -38,6 +38,13 @@
     c.style.outline = 'none';
     c.style.cursor = 'pointer';
     c.setAttribute('tabindex', '0');
+    // keyboard-only focus ring: pointer interactions keep the canvas clean
+    c.addEventListener('pointerdown', function () { c.g404PointerDown = true; });
+    c.addEventListener('focus', function () {
+      if (!c.g404PointerDown) c.style.outline = '2px solid currentColor';
+      c.g404PointerDown = false;
+    });
+    c.addEventListener('blur', function () { c.style.outline = 'none'; });
     c.setAttribute('role', 'application');
     c.setAttribute('aria-label', label);
     root.appendChild(c);
@@ -52,6 +59,40 @@
     ctx.closePath();
     ctx.fill();
   }
+  /* overlay/eye contrast: with no --g404-bg, pick black/white from fg luminance
+     (a light fg means a dark page, so the overlay box must be dark too) */
+  function overlayBg(ctx, th) {
+    if (th.bg !== 'transparent') return th.bg;
+    ctx.save();
+    ctx.fillStyle = th.fg;
+    var norm = String(ctx.fillStyle);
+    ctx.restore();
+    var r = 255, g = 255, b = 255;
+    var m = /^#([0-9a-f]{6})/i.exec(norm);
+    if (m) {
+      r = parseInt(m[1].slice(0, 2), 16); g = parseInt(m[1].slice(2, 4), 16); b = parseInt(m[1].slice(4, 6), 16);
+    } else {
+      m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(norm);
+      if (m) { r = +m[1]; g = +m[2]; b = +m[3]; }
+    }
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) > 140 ? '#111418' : '#ffffff';
+  }
+  // screen-reader announcement (aria-live) for game-over states
+  function announce(root, msg) {
+    var el = root.g404Live;
+    if (!el) {
+      el = document.createElement('span');
+      el.setAttribute('aria-live', 'polite');
+      el.style.position = 'absolute';
+      el.style.width = '1px';
+      el.style.height = '1px';
+      el.style.overflow = 'hidden';
+      el.style.clip = 'rect(0 0 0 0)';
+      root.appendChild(el);
+      root.g404Live = el;
+    }
+    el.textContent = msg;
+  }
   /* ---- end shared kit ---- */
 
   function mount(root) {
@@ -60,9 +101,9 @@
     var th = readTheme(root);
     var hi = loadHi();
     var st = 'idle';
-    var raf = 0, last = 0, overAt = 0, destroyed = false, themeT = 0;
+    var raf = 0, last = 0, overAt = 0, destroyed = false, themeT = 0, idleT = 1, drawnSt = '';
 
-    var grid, score, popT;
+    var grid, score;
     var swipeX = 0, swipeY = 0, swipeOn = false;
 
     function addTile() {
@@ -75,7 +116,7 @@
     function reset() {
       grid = [];
       for (var r = 0; r < N; r++) { grid.push([0, 0, 0, 0]); }
-      score = 0; popT = 0;
+      score = 0;
       addTile(); addTile();
     }
     reset();
@@ -83,6 +124,7 @@
     function start() { reset(); st = 'run'; canvas.focus(); }
     function gameOver() {
       st = 'over'; overAt = performance.now();
+      announce(root, 'game over. score ' + score);
       if (score > hi) { hi = score; saveHi(hi); }
     }
 
@@ -134,7 +176,6 @@
       if (moved) {
         score += gained;
         addTile();
-        popT = 0.12;
         if (!canMove()) gameOver();
       }
     }
@@ -212,7 +253,7 @@
     }
 
     function overlay(title, sub) {
-      ctx.fillStyle = th.bg !== 'transparent' ? th.bg : '#fff';
+      ctx.fillStyle = overlayBg(ctx, th);
       ctx.globalAlpha = 0.78;
       ctx.fillRect(0, H / 2 - 70, W, 140);
       ctx.globalAlpha = 1;
@@ -231,8 +272,13 @@
       last = t;
       themeT += dt;
       if (themeT > 1) { themeT = 0; th = readTheme(root); }
-      if (popT > 0) popT -= dt;
-      draw();
+      // idle/over scenes are static: redraw at ~4fps unless the state just changed
+      idleT += dt;
+      if (st === 'run' || st !== drawnSt || idleT > 0.25) {
+        idleT = 0;
+        drawnSt = st;
+        draw();
+      }
       raf = requestAnimationFrame(loop);
     }
 
@@ -242,6 +288,7 @@
       canvas.focus();
       if (st === 'idle') return start();
       if (st === 'over') { if (performance.now() - overAt > 400) start(); return; }
+      if (canvas.setPointerCapture && e.pointerId !== undefined) { try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
       swipeOn = true; swipeX = e.clientX; swipeY = e.clientY;
     }
     function onPointerUp(e) {
@@ -263,6 +310,7 @@
     }
     canvas.addEventListener('pointerdown', onPointerDown);
     canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', function () { swipeOn = false; });
     document.addEventListener('keydown', onKey);
     raf = requestAnimationFrame(loop);
 
@@ -273,6 +321,7 @@
         var dpr = window.devicePixelRatio || 1;
         canvas.width = Math.round(cw * dpr);
         canvas.height = Math.round(cw * (H / W) * dpr);
+        idleT = 1;
       });
       ro.observe(canvas);
     }

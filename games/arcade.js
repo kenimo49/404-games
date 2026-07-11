@@ -137,7 +137,10 @@
     var s = document.createElement('script');
     s.src = base + id + '.js';
     s.onload = function () { cb(window.Games404 && window.Games404[id] ? null : new Error('bad game file')); };
-    s.onerror = function () { cb(new Error('load failed')); };
+    s.onerror = function () {
+      if (s.parentNode) s.parentNode.removeChild(s); // keep retries from stacking dead tags
+      cb(new Error('load failed'));
+    };
     document.head.appendChild(s);
   }
 
@@ -146,6 +149,8 @@
     var base = opts.base || defaultBase();
     var games = ((window.Games404 && window.Games404.extraGames) || []).concat(GAMES);
     var instance = null;
+    var loadSeq = 0;      // invalidates in-flight loadGame callbacks (menu/destroy while loading)
+    var disposed = false;
 
     var wrap = document.createElement('div');
     wrap.style.maxWidth = '640px';
@@ -171,6 +176,7 @@
     note.style.padding = '2rem 0';
 
     function showMenu() {
+      loadSeq++; // drop any in-flight load
       if (instance && instance.destroy) instance.destroy();
       instance = null;
       stage.innerHTML = '';
@@ -178,28 +184,36 @@
       note.style.display = 'none';
       back.style.display = 'none';
       menu.style.display = 'grid';
+      var first = menu.querySelector('button');
+      if (first) first.focus();
     }
-    function showGame(id) {
+    function showGame(id, viaUser) {
       menu.style.display = 'none';
       note.textContent = '…';
       note.style.display = 'block';
       back.style.display = 'inline-block';
+      var seq = ++loadSeq;
       loadGame(id, base, function (err) {
+        if (disposed || seq !== loadSeq) return; // stale: user left or picked again meanwhile
         note.style.display = 'none';
         if (err) {
           note.textContent = 'FAILED TO LOAD ' + id.toUpperCase();
           note.style.display = 'block';
           return;
         }
+        if (instance && instance.destroy) instance.destroy();
         stage.style.display = 'block';
         instance = window.Games404[id].mount(stage);
-        try { localStorage.setItem('g404:last', id); } catch (e) {}
+        if (viaUser) {
+          var cv = stage.querySelector('canvas');
+          if (cv) cv.focus(); // keyboard users can hit Space right away
+        }
       });
     }
 
     games.forEach(function (g) {
       var b = makeTile(g);
-      b.addEventListener('click', function () { showGame(g.id); });
+      b.addEventListener('click', function () { showGame(g.id, true); });
       menu.appendChild(b);
     });
 
@@ -216,7 +230,10 @@
 
     return {
       destroy: function () {
+        disposed = true;
+        loadSeq++;
         if (instance && instance.destroy) instance.destroy();
+        instance = null;
         if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
       }
     };

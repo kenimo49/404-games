@@ -49,7 +49,9 @@ for (const g of GAMES) check(mounted[g] === true, `canvas mounted: ${g}`);
 
 // start each game and poke the controls
 for (const g of GAMES) {
-  const el = await page.$(`[data-404-game="${g}"] canvas`);
+  const sel = `[data-404-game="${g}"] canvas`;
+  const el = await page.$(sel);
+  const before = await page.evaluate((s) => document.querySelector(s).toDataURL(), sel);
   await el.click();
   await sleep(300);
   await el.click();
@@ -57,7 +59,8 @@ for (const g of GAMES) {
   await page.keyboard.press('ArrowUp');
   await page.keyboard.press('Space');
   await sleep(500);
-  check(true, `played: ${g}`);
+  const after = await page.evaluate((s) => document.querySelector(s).toDataURL(), sel);
+  check(before !== after, `played: ${g} (canvas actually changed)`);
 }
 
 // arcade: pick a game, then back to the menu
@@ -71,6 +74,36 @@ const backBtn = await page.evaluateHandle(() =>
 await backBtn.asElement().click();
 await sleep(200);
 check(await page.evaluate(() => !document.querySelector('[data-404-arcade] canvas')), 'arcade: back to menu');
+
+// programmatic mount contract: destroy removes the canvas, remount works cleanly
+const dr = await page.evaluate(() => {
+  const div = document.createElement('div');
+  document.body.appendChild(div);
+  const a = window.Games404.runner.mount(div);
+  const hadCanvas = !!div.querySelector('canvas');
+  a.destroy();
+  const removed = !div.querySelector('canvas');
+  const b = window.Games404.runner.mount(div);
+  const remounted = !!div.querySelector('canvas');
+  b.destroy();
+  div.remove();
+  return hadCanvas && removed && remounted;
+});
+check(dr, 'destroy / remount cycle (runner)');
+
+// arcade lazy-load: a page with ONLY arcade.js must inject the game script itself
+const page2 = await browser.newPage();
+const errors2 = [];
+page2.on('pageerror', (e) => errors2.push(e.message));
+await page2.goto(DEMO.replace('demo/index.html', 'test/arcade-only.html'), { waitUntil: 'networkidle0' });
+await sleep(300);
+const snakeTile = await page2.evaluateHandle(() =>
+  [...document.querySelectorAll('[data-404-arcade] button')].find((b) => b.textContent.includes('SNAKE')));
+await snakeTile.asElement().click();
+await sleep(700);
+check(await page2.evaluate(() => !!document.querySelector('[data-404-arcade] canvas')), 'arcade lazy-load: script injection path');
+check(errors2.length === 0, 'arcade-only page: zero errors');
+await page2.close();
 
 // theme variables follow a live toggle (games re-read them once a second)
 const theme = await page.evaluate(() => new Promise((res) => {
