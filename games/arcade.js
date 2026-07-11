@@ -8,6 +8,7 @@
  *
  * Options:
  *   <script src="arcade.js" data-base="/404-games/"></script>  … override game file location
+ *   <div data-404-arcade data-no-title></div> … hide the built-in "404 ARCADE" heading
  *   ?g404=<id> in the page URL … open a game directly (e.g. ?g404=runner)
  *
  * Theming: same CSS variables as the games (--g404-fg / --g404-bg / --g404-accent).
@@ -87,6 +88,10 @@
 
     bar.appendChild(title);
     bar.appendChild(back);
+    if (opts.noTitle || root.hasAttribute('data-no-title')) {
+      title.style.display = 'none';
+      bar.style.justifyContent = 'flex-end';
+    }
 
     var menu = document.createElement('div');
     menu.style.display = 'grid';
