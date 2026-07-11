@@ -10,7 +10,8 @@
  *   <script src="arcade.js" data-base="/404-games/"></script>  … override game file location
  *   <div data-404-arcade data-no-title></div> … hide the built-in "404 ARCADE" heading
  *   <div data-404-arcade data-default="runner"></div> … open that game on load (menu via back button)
- *   ?g404=<id> in the page URL … open a game directly (e.g. ?g404=runner)
+ *   ?g404=<id> in the page URL … open a game directly (e.g. ?g404=runner);
+ *   ?g404=menu forces the menu even when data-default is set
  *
  * Custom games: register metadata BEFORE this script loads and serve <id>.js
  * next to the other game files — it shows up first in the menu:
@@ -190,8 +191,12 @@
     try {
       var m = /[?&]g404=([a-z0-9]+)/.exec(window.location.search);
       if (m) {
-        for (var i = 0; i < games.length; i++) {
-          if (games[i].id === m[1]) { showGame(m[1]); opened = true; break; }
+        if (m[1] === 'menu') {
+          opened = true; // stay on the menu, overriding data-default
+        } else {
+          for (var i = 0; i < games.length; i++) {
+            if (games[i].id === m[1]) { showGame(m[1]); opened = true; break; }
+          }
         }
       }
     } catch (e) {}

@@ -39,7 +39,8 @@ Copy the `games/` directory to your site, then:
 
 `arcade.js` renders a game menu and lazy-loads the chosen game from the same
 directory it was served from (override with `data-base="/some/path/"`).
-Deep-link a game with `?g404=runner` in the page URL. Add `data-no-title` to
+Deep-link a game with `?g404=runner` in the page URL (`?g404=menu` forces
+the menu even when `data-default` is set). Add `data-no-title` to
 the container to hide the built-in "404 ARCADE" heading when your page
 provides its own, and `data-default="runner"` to open a game right away (the
 menu stays one back-button away).
