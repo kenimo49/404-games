@@ -41,7 +41,20 @@ Copy the `games/` directory to your site, then:
 directory it was served from (override with `data-base="/some/path/"`).
 Deep-link a game with `?g404=runner` in the page URL. Add `data-no-title` to
 the container to hide the built-in "404 ARCADE" heading when your page
-provides its own.
+provides its own, and `data-default="runner"` to open a game right away (the
+menu stays one back-button away).
+
+You can also add your own site-specific game to the menu: serve a `<id>.js`
+file next to the others (same mount conventions) and register its metadata
+before `arcade.js` loads. It appears first in the menu:
+
+```html
+<script>
+  window.Games404 = window.Games404 || {};
+  window.Games404.extraGames = [{ id: 'ship', icon: '⛵', label: 'SHIP' }];
+</script>
+<script src="/404-games/arcade.js"></script>
+```
 
 ### Option B: a single game
 

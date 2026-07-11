@@ -32,7 +32,17 @@
 <script src="/404-games/arcade.js"></script>
 ```
 
-`arcade.js` がゲームメニューを描画し、選ばれたゲームを自分の配信元ディレクトリから遅延ロードします（`data-base="/some/path/"` で上書き可能）。URLに `?g404=runner` を付けると直接そのゲームが開きます。ページ側に独自の見出しがある場合は、コンテナに `data-no-title` を付けると内蔵の「404 ARCADE」見出しを非表示にできます。
+`arcade.js` がゲームメニューを描画し、選ばれたゲームを自分の配信元ディレクトリから遅延ロードします（`data-base="/some/path/"` で上書き可能）。URLに `?g404=runner` を付けると直接そのゲームが開きます。ページ側に独自の見出しがある場合は、コンテナに `data-no-title` を付けると内蔵の「404 ARCADE」見出しを非表示にできます。`data-default="runner"` を付けると最初からそのゲームを開いた状態になります（メニューには戻るボタンで移動）。
+
+サイト固有の自作ゲームをメニューに足すこともできます。他のゲームと同じマウント規約の `<id>.js` を同じディレクトリに置き、`arcade.js` の読み込み前にメタデータを登録するとメニューの先頭に並びます:
+
+```html
+<script>
+  window.Games404 = window.Games404 || {};
+  window.Games404.extraGames = [{ id: 'ship', icon: '⛵', label: 'SHIP' }];
+</script>
+<script src="/404-games/arcade.js"></script>
+```
 
 ### 方法B: 1ゲームだけ
 

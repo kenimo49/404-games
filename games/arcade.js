@@ -9,7 +9,13 @@
  * Options:
  *   <script src="arcade.js" data-base="/404-games/"></script>  … override game file location
  *   <div data-404-arcade data-no-title></div> … hide the built-in "404 ARCADE" heading
+ *   <div data-404-arcade data-default="runner"></div> … open that game on load (menu via back button)
  *   ?g404=<id> in the page URL … open a game directly (e.g. ?g404=runner)
+ *
+ * Custom games: register metadata BEFORE this script loads and serve <id>.js
+ * next to the other game files — it shows up first in the menu:
+ *   window.Games404 = window.Games404 || {};
+ *   window.Games404.extraGames = [{ id: 'ship', icon: '⛵', label: 'SHIP' }];
  *
  * Theming: same CSS variables as the games (--g404-fg / --g404-bg / --g404-accent).
  */
@@ -48,6 +54,7 @@
   function mount(root, opts) {
     opts = opts || {};
     var base = opts.base || defaultBase();
+    var games = ((window.Games404 && window.Games404.extraGames) || []).concat(GAMES);
     var instance = null;
 
     var wrap = document.createElement('div');
@@ -135,7 +142,7 @@
       });
     }
 
-    GAMES.forEach(function (g) {
+    games.forEach(function (g) {
       var b = document.createElement('button');
       b.type = 'button';
       b.style.font = 'inherit';
@@ -178,15 +185,24 @@
     wrap.appendChild(stage);
     root.appendChild(wrap);
 
-    // deep link: ?g404=<id>
+    // deep link (?g404=<id>) wins over the data-default game
+    var opened = false;
     try {
       var m = /[?&]g404=([a-z0-9]+)/.exec(window.location.search);
       if (m) {
-        for (var i = 0; i < GAMES.length; i++) {
-          if (GAMES[i].id === m[1]) { showGame(m[1]); break; }
+        for (var i = 0; i < games.length; i++) {
+          if (games[i].id === m[1]) { showGame(m[1]); opened = true; break; }
         }
       }
     } catch (e) {}
+    if (!opened) {
+      var def = root.getAttribute('data-default') || opts.defaultGame;
+      if (def) {
+        for (var j = 0; j < games.length; j++) {
+          if (games[j].id === def) { showGame(def); break; }
+        }
+      }
+    }
 
     return {
       destroy: function () {
