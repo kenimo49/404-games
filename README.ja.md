@@ -115,6 +115,8 @@ npm install --no-save --no-package-lock puppeteer
 node test/smoke.mjs
 ```
 
+`scripts/check-health.sh` はメンテナ用の任意のlint/複雑度ゲートです。内部のcode-healthハーネスがローカルにある場合だけ動き、無ければそのままskipするので、コントリビュータは無視して構いません。
+
 ## ライセンス
 
 [MIT](LICENSE) © ken imoto

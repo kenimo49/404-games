@@ -141,6 +141,10 @@ npm install --no-save --no-package-lock puppeteer
 node test/smoke.mjs
 ```
 
+`scripts/check-health.sh` is an optional lint/complexity gate for maintainers.
+It runs only when the internal code-health harness is installed locally and
+skips cleanly otherwise, so contributors can ignore it.
+
 ## License
 
 [MIT](LICENSE) © ken imoto
